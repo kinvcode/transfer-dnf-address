@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>变色龙 - 基址转换</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.13.2/lib/theme-chalk/index.css">
+</head>
+<body>
+<div id="app">
+    <el-row :gutter="20">
+        <el-col :span="12" :offset="6">
+            <div class="grid-content bg-purple">
+                <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span>变色龙 - 基址转换工具</span>
+                        <el-button style="float: right; padding: 3px 0" type="text"></el-button>
+                    </div>
+                    <div class="text item">
+                        <el-form ref="form" :model="form" label-width="80px">
+                            <el-form-item label="基址文件">
+                                <el-upload
+                                        v-if="!form.file"
+                                        class="upload-demo"
+                                        action=""
+                                        :multiple="false"
+                                        accept=".txt"
+                                        :on-remove="handleRemove"
+                                        :before-upload="handleFile"
+                                        :limit="1">
+                                    <el-button size="small" type="primary">点击上传</el-button>
+                                </el-upload>
+                                <el-input
+                                        v-if="form.file"
+                                        :placeholder="form.file_name"
+                                        v-model="form.file_name"
+                                        :disabled="true">
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="基址类型">
+                                <el-select v-model="form.type" placeholder="请选择基址类型">
+                                    <el-option label="七度" :value="0" :selected="true"></el-option>
+                                    <el-option label="心悦" :value="1"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="转换结果">
+                                <el-input rows="20" type="textarea" v-model="form.result"></el-input>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="onSubmit">进行转换</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                </el-card>
+            </div>
+        </el-col>
+    </el-row>
+
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/element-ui@2.13.2/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                form: {
+                    file: null,
+                    file_name: '',
+                    type: 0,
+                    result: null,
+                },
+                data_map: {
+                    "人物基址": "C_USER_ADDRESS",
+                    "人物CALL": "C_USER_CALL",
+                    "名称偏移": "C_NAME_OFFSET",
+                    "鞋子偏移": "C_SHOE_OFFSET",
+                    "攻击速度": "C_ATTACK_SPEED",
+                    "移动速度": "C_MOVE_SPEED",
+                    "释放速度": "C_CASTING_SPEED",
+                    "全局空白": "C_EMPTY_ADDRESS",
+                    "汇编CALL": "C_ASM_CALL",
+                    "召唤人偶CALL": "C_SUMMON_FIGURE",
+                    "召唤怪物CALL": "C_SUMMON_MONSTER",
+                    "透明CALL": "C_HIDDEN_CALL",
+                    "技能CALL": "C_SKILL_CALL",
+                    "游戏状态": "C_GAME_STATUS",
+                    "房间编号": "C_ROOM_NUMBER",
+                    "时间基址": "C_TIME_ADDRESS",
+                    "门型偏移": "C_DOOR_TYPE_OFFSET",
+                    "篝火判断": "C_BONFIRE_JUDGE",
+                    "评分基址": "C_SCORE_ADDRESS",
+                    "C_E_评分": "C_CE_SCORE",
+                    "是否开门": "C_DOOR_OFFSET",
+                    "地图偏移": "C_MAP_OFFSET",
+                    "BOSS房间X": "C_BOSS_ROOM_X",
+                    "BOSS房间Y": "C_BOSS_ROOM_Y",
+                    "当前房间X": "C_CURRENT_ROOM_X",
+                    "当前房间Y": "C_CURRENT_ROOM_Y",
+                    "起始坐标X": "C_BEGIN_ROOM_X",
+                    "起始坐标Y": "C_BEGIN_ROOM_Y",
+                    "地图开始2": "C_MAP_HEAD",
+                    "地图结束2": "C_MAP_END",
+                    "类型偏移": "C_TYPE_OFFSET",
+                    "阵营偏移": "C_CAMP_OFFSET",
+                    "代码偏移": "C_CODE_OFFSET",
+                    "怪物血量": "C_MONSTER_BLOOD",
+                    "读取坐标": "C_READ_COORDINATE",
+                    "对象坐标": "C_OBJECT_COORDINATE",
+                    "全局基址": "C_GLOBAL_ADDRESS",
+                    "顺图偏移": "C_PASS_ROOM_OFFSET",
+                    "坐标顺图CALL": "C_COORDINATE_PASS_ROOM",
+                    "自动捡物": "C_AUTO_PICKUP",
+                    "动作ID": "C_MOVEMENT_ID",
+                    "地图穿透": "C_PENETRATE_MAP",
+                    "建筑穿透": "C_PENETRATE_BUILDING",
+                    "宽高偏移": "C_WH_OFFSET",
+                    "数组偏移": "C_AISLE_OFFSET",
+                    "浮点冷却2": "C_FLOAT_COOL_DOWN2",
+                    "索引偏移": "C_MAP_CODE",
+                    "冷却判断CALL": "C_COOL_DOWN_JUDGE_CALL",
+                    "技能栏": "C_SKILL_LIST",
+                    "技能栏偏移": "C_SKILL_LIST_OFFSET",
+                    "坐标CALL偏移": "C_COOR_CALL_OFFSET",
+                }
+            }
+        },
+        methods: {
+            onSubmit() {
+                if (!this.form.file) {
+                    this.$message('请选择基址文件');
+                    return;
+                }
+                let type = this.form.type;
+                let data_map = this.data_map;
+                let that = this;
+                let reader = new FileReader();
+                reader.readAsText(this.form.file, 'GBK');
+                reader.onload = function () {
+                    let fileContentArray = this.result.split(/\r\n|\n/);
+                    let length = fileContentArray.length - 1;
+                    let format_result = [];
+                    if (type === 0) {
+                        for (let line = 0; line < length; line++) {
+                            let line_string = fileContentArray[line];
+                            let res = line_string.indexOf(".常量");
+                            if (res !== 0) {
+                                continue;
+                            }
+
+                            let new_string = line_string.replace('.常量 ', '').replace(',  ', '').replace(' 7度_获取', '');
+                            let addressArr = new_string.split(',')
+                            if (data_map[addressArr[0]]) {
+                                format_result.push("#define " + data_map[addressArr[0]] + " 0x" + addressArr[2] + " // " + addressArr[0]);
+                            }
+                        }
+                    } else {
+                        for (let line = 0; line < length; line++) {
+                            let line_string = fileContentArray[line];
+                            let res = line_string.indexOf(".常量");
+                            if (res !== 0) {
+                                continue;
+                            }
+
+                            let new_string = line_string.replace('.常量 ', '').replace('  ', '').replace(' , 心悦获取', '');
+                            let tmp_arr = new_string.split(',')
+                            let addressArr = tmp_arr[1].split('·')
+                            format_result.push([tmp_arr[0], addressArr[0], addressArr[1]]);
+                        }
+                    }
+
+                    let finial_string = '';
+                    let tmp_string;
+                    for (let i = 0; i < format_result.length; i++) {
+                        // let tmp_string = format_result[i][0] + ' = ' + format_result[i][1] + ' // 变色龙转换 ' + format_result[i][2] + "\r\n";
+                        tmp_string = format_result[i] + "\r\n";
+                        finial_string = finial_string.concat(tmp_string);
+                    }
+                    that.form.result = finial_string;
+                }
+
+            },
+            handleRemove(file, fileList) {
+
+            },
+            handleFile(file) {
+                this.form.file = file;
+                this.form.file_name = file.name;
+                return false;
+            },
+            qidu(arg) {
+                console.log(arg);
+            },
+
+        },
+        beforeCreate() {
+
+        },
+    })
+</script>
+</html>
